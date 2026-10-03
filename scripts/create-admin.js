@@ -12,7 +12,7 @@ try {
 
 const MONGO_URI = process.env.MONGO_DB_URI || 'mongodb://127.0.0.1:27017/hrms';
 
-const email = process.argv[2] || process.env.ADMIN_EMAIL || 'admin@quantumcloud.com';
+const email = process.argv[2] || process.env.ADMIN_EMAIL || 'quantumcloudcorporation@gmail.com';
 const password = process.argv[3] || process.env.ADMIN_PASSWORD || 'Admin@123456';
 const firstName = process.argv[4] || 'Super';
 const lastName = process.argv[5] || 'Admin';
@@ -41,6 +41,7 @@ async function createSuperAdmin() {
           $set: {
             password: hashedPassword,
             position: ['HR', 'Operation Manager', 'Workforce'],
+            idNumber: 'QC-000000',
             archived: false,
             firstName,
             lastName,
@@ -58,7 +59,7 @@ async function createSuperAdmin() {
         email: email.toLowerCase(),
         firstName,
         lastName,
-        idNumber: 'QC-0001',
+        idNumber: 'QC-000000',
         position: ['HR', 'Operation Manager', 'Workforce'],
         archived: false,
         salaryType: 'monthly',

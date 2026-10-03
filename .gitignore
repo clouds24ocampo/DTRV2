@@ -42,3 +42,4 @@ Thumbs.db
 
 # Tool analysis and cache
 graphify-out/
+.mongo-data/
