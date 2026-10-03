@@ -125,7 +125,16 @@ const IsAuthenticated = () => {
             } flex-1 overflow-auto min-h-0 text-slate-900`}
         >
           {/* Wait until "me" matches the account so no page renders someone else's data. */}
-          {user?._id === accountId || syncedFor === accountId ? <Outlet /> : null}
+          {user?._id === accountId || syncedFor === accountId ? (
+            <Outlet />
+          ) : (
+            <div className="flex h-full min-h-[400px] w-full items-center justify-center">
+              <div className="flex flex-col items-center gap-3 text-slate-500 text-sm">
+                <div className="w-8 h-8 rounded-full border-2 border-slate-200 border-t-blue-600 animate-spin" />
+                <span>Loading workspace...</span>
+              </div>
+            </div>
+          )}
         </main>
       </div>
     </div>

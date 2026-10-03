@@ -11,6 +11,17 @@ export default defineConfig(({mode}) => {
     plugins: [react()],
     server: {
       port: Number(env.VITE_PORT) || 9000,
+      proxy: {
+        "/api": {
+          target: "http://localhost:9001",
+          changeOrigin: true,
+          secure: false,
+        },
+        "/socket.io": {
+          target: "http://localhost:9001",
+          ws: true,
+        },
+      },
     },
     resolve: {
       alias: {

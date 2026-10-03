@@ -41,7 +41,7 @@ export type AuthStoreType = {
   }: {
     email: string;
     password: string;
-  }) => Promise<{ success: boolean; message?: string }>;
+  }) => Promise<{ success: boolean; message?: string; user?: AccountType }>;
   logoutUser: () => Promise<void>;
   setAccount: (account: AccountType | null) => void;
   requestPasswordResetPin: (email: string) => Promise<boolean>;

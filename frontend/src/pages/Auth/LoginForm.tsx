@@ -289,11 +289,25 @@ export default function LoginForm() {
     setIsLoading(false);
 
     if (result.success) {
-      // Keep email/password in state and localStorage so they persist as "last used" for next visit
-      if (redirectAfterLogin && typeof redirectAfterLogin === "string" && redirectAfterLogin.startsWith("/")) {
+      if (redirectAfterLogin && typeof redirectAfterLogin === "string" && redirectAfterLogin.startsWith("/") && redirectAfterLogin !== "/login") {
         navigate(redirectAfterLogin, { replace: true });
       } else {
-        navigate("/");
+        const positions: string[] = Array.isArray(result.user?.position)
+          ? result.user.position.map((p) => String(p).toLowerCase().trim())
+          : [String(result.user?.position || "").toLowerCase().trim()];
+        const hasRole = (keyword: string) => positions.some((p) => p.includes(keyword));
+
+        if (hasRole("hr") || hasRole("admin") || hasRole("operation manager") || hasRole("operations manager")) {
+          navigate("/hr-dashboard", { replace: true });
+        } else if (hasRole("workforce")) {
+          navigate("/workforce-dashboard", { replace: true });
+        } else if (hasRole("team leader") || hasRole("teamleader")) {
+          navigate("/teamLeader-dashboard", { replace: true });
+        } else if (hasRole("intern")) {
+          navigate("/intern-dashboard", { replace: true });
+        } else {
+          navigate("/employee-dashboard", { replace: true });
+        }
       }
     } else if (result.message) {
       setStatusNote(result.message);

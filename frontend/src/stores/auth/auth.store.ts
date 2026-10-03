@@ -42,7 +42,7 @@ const useAuthStore = create(
             localStorage.setItem("auth-token", response.data.token);
           }
           set({ account: user, showSplash: false });
-          return { success: true };
+          return { success: true, user };
         } catch (error) {
           console.error("Error logging in account", error);
           let message = "An unexpected error occurred.";

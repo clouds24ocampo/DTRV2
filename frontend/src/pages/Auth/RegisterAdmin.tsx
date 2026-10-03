@@ -135,10 +135,22 @@ export default function RegisterAdmin() {
           <motion.div
             initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mt-5 p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30 flex items-start gap-2.5 text-rose-300 text-sm"
+            className="mt-5 p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30 flex flex-col gap-2.5 text-rose-300 text-sm"
           >
-            <AlertCircle className="w-5 h-5 text-rose-400 shrink-0 mt-0.5" />
-            <span className="leading-snug">{error}</span>
+            <div className="flex items-start gap-2.5">
+              <AlertCircle className="w-5 h-5 text-rose-400 shrink-0 mt-0.5" />
+              <span className="leading-snug">{error}</span>
+            </div>
+            {error.toLowerCase().includes("already exists") && (
+              <button
+                type="button"
+                onClick={() => navigate("/login")}
+                className="mt-1 w-full py-2.5 px-4 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-medium text-xs flex items-center justify-center gap-2 transition-colors cursor-pointer"
+              >
+                <span>Go to Sign In with Super Admin</span>
+                <ArrowLeft className="w-3.5 h-3.5 rotate-180" />
+              </button>
+            )}
           </motion.div>
         )}
 

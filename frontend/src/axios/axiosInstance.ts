@@ -1,6 +1,6 @@
 import axios, { AxiosError } from "axios";
-const rawBaseURL = import.meta.env.VITE_API_URL?.trim();
-const baseURL = rawBaseURL ? rawBaseURL.replace(/\/+$/, "") : "";
+const rawBaseURL = (import.meta.env.VITE_API_URL?.trim() || "http://localhost:9001");
+const baseURL = rawBaseURL.replace(/\/+$/, "");
 
 const axiosInstance = axios.create({
   baseURL: baseURL,
