@@ -81,6 +81,7 @@ Innovation
 Compliance
 Regulatory Affairs
 Corporate Social Responsibility (CSR)
+
 ## 2. Public-Sector / Government Organization Departments
 
 Government organizations are structured differently. Depending on whether you're designing an NGO, LGU, national government agency, GOCC, or government corporation, the exact offices vary.
@@ -154,6 +155,7 @@ Community Relations
 Communications
 Public Affairs
 Social Services
+
 ## 3. Philippine LGU Structure
 
 If your HRMS is intended to support Philippine government/LGU users, you should model LGUs separately rather than simply copying a corporate department structure.
@@ -190,6 +192,7 @@ Tourism Office
 Cooperative Development Office
 Local Youth Development Office
 Other legally created/authorized offices
+
 ## 4. Recommended Enterprise HRMS Structure
 
 Since you are building an enterprise HRMS, I would not hard-code these departments into the system.
@@ -260,6 +263,7 @@ Municipality
 ├── MDRRMO
 │
 └── Municipal Health Office
+
 ### Important for your HRMS
 
 I recommend your system support both:
