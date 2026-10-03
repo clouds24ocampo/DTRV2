@@ -31,6 +31,7 @@ const initialFormData: EmployeeFormFields = {
   firstName: "",
   middleName: "",
   position: "",
+  departmentId: "",
   idNumber: "",
   workInfo: "",
   location: "",
@@ -56,7 +57,7 @@ export const AddEmployeeModal: React.FC<AddEmployeeModalProps> = ({
   const handleChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >
+    > | any
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -84,31 +85,32 @@ export const AddEmployeeModal: React.FC<AddEmployeeModalProps> = ({
 
       const apiPayload: any = {
         ...payload,
-        password: payload.password || "",
+        password: payload.password?.trim() ? payload.password.trim() : "Welcome@123",
+        salaryType: payload.salaryType || "monthly",
         // Blank → backend auto-generates a sequential QC-YYYY-NNNN ID.
         idNumber: autoIdNumber ? "" : payload.idNumber.trim().toUpperCase(),
+        departmentId: formData.departmentId || undefined,
       };
 
       if (Array.isArray(payload.position)) {
         apiPayload.position = payload.position;
-      } else {
+      } else if (payload.position) {
         apiPayload.position = [payload.position];
+      } else {
+        apiPayload.position = ["Employee"];
       }
 
-      // Type assertion is safe because validation ensures password exists for add mode
-      const success = await sendEmployeeDataToApi(apiPayload);
+      const result = await sendEmployeeDataToApi(apiPayload);
 
-      if (success) {
+      if (result) {
         setFormData(initialFormData);
         setAutoIdNumber(true);
         toast.success("Account successfully registered");
         onClose();
         refetchAll();
-      } else {
-        toast.error("Failed to submit request");
       }
     } catch (error: any) {
-      toast.error(error?.message || "An error occurred");
+      toast.error(error?.message || "Failed to create employee");
     } finally {
       setLoading(false);
     }

@@ -20,28 +20,28 @@ const router = express.Router();
 router.post(
   "/create",
   protectRoute,
-  authMiddleware(["Workforce", "Operation Manager"]),
+  authMiddleware(["Workforce", "Operation Manager", "HR"]),
   createSchedulesForUsers
 );
 
 router.get(
   "/",
   protectRoute,
-  authMiddleware(["Workforce", "Operation Manager"]),
+  authMiddleware(["Workforce", "Operation Manager", "HR"]),
   getAllSchedules
 );
 
 router.get(
   "/user/:userId",
   protectRoute,
-  authMiddleware(["Workforce", "Operation Manager"]),
+  authMiddleware(["Workforce", "Operation Manager", "HR"]),
   getSchedulesByUserId
 );
 
 router.get(
   "/date/:date",
   protectRoute,
-  authMiddleware(["Workforce", "Operation Manager"]),
+  authMiddleware(["Workforce", "Operation Manager", "HR"]),
   getSchedulesByDate
 );
 
@@ -78,21 +78,21 @@ router.post(
 router.patch(
   "/:scheduleId/sessions/:sessionId",
   protectRoute,
-  authMiddleware(["Workforce", "Operation Manager"]),
+  authMiddleware(["Workforce", "Operation Manager", "HR"]),
   editSingleSession
 );
 
 router.put(
   "/edit",
   protectRoute,
-  authMiddleware(["Workforce", "Operation Manager"]),
+  authMiddleware(["Workforce", "Operation Manager", "HR"]),
   editSchedule
 );
 
 router.delete(
   "/:scheduleId/delete",
   protectRoute,
-  authMiddleware(["Workforce", "Operation Manager"]),
+  authMiddleware(["Workforce", "Operation Manager", "HR"]),
   deleteSchedule
 );
 

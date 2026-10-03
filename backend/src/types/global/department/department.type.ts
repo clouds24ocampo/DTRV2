@@ -50,6 +50,13 @@ export interface DepartmentDoc {
   type: string;
   description: string;
   head: string | null;
+  headUser?: {
+    _id: string;
+    firstName: string;
+    lastName: string;
+    email?: string;
+    idNumber?: string;
+  } | null;
   members: string[];
   location: string;
   status: boolean;

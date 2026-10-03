@@ -10,6 +10,13 @@ export interface DepartmentDoc {
   type: string; // free-form user input
   description: string; // server normalizes to empty string if missing
   head: Id | null; // user id or null if unset
+  headUser?: {
+    _id: string;
+    firstName: string;
+    lastName: string;
+    email?: string;
+    idNumber?: string;
+  } | null;
   members: Id[]; // array of user ids
   location: string; // server normalizes to empty string if missing
   status: boolean; // true = active, false = inactive

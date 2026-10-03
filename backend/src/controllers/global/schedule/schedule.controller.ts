@@ -60,8 +60,8 @@ async function resolveUserId(input: string): Promise<string> {
 
 export const createSchedulesForUsers = async (
   req: Request,
-  _res: Response
-): Promise<{ status: number; body: any }> => {
+  res: Response
+): Promise<any> => {
   try {
     const { userIds, date, sessions } = req.body as {
       userIds: string[];
@@ -83,16 +83,15 @@ export const createSchedulesForUsers = async (
       sessions,
     });
 
-    return { status: 201, body: { message, result } };
+    return res.status(201).json({ message, result });
   } catch (err) {
     if (err instanceof ServiceError) {
-      return { status: err.status, body: { message: err.message } };
+      return res.status(err.status).json({ message: err.message });
     }
     console.error("createSchedulesForUsers error:", err);
-    return {
-      status: 500,
-      body: { message: "Failed to create schedules for users" },
-    };
+    return res
+      .status(500)
+      .json({ message: "Failed to create schedules for users" });
   }
 };
 

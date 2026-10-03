@@ -49,6 +49,7 @@ const isWithinRange = (d: string, start: string, end: string) =>
 
 type ScheduleStore = {
   schedules: IScheduleDoc[];
+  allSchedules: IScheduleDoc[];
 
   selectedUserId: string | null;
   selectedDate: string | null;
@@ -96,6 +97,7 @@ type ScheduleStore = {
 
 export const useScheduleStore = create<ScheduleStore>((set, get) => ({
   schedules: [],
+  allSchedules: [],
 
   selectedUserId: null,
   selectedDate: null,
@@ -133,7 +135,7 @@ export const useScheduleStore = create<ScheduleStore>((set, get) => ({
       const data = await getAllSchedulesApi();
       console.log("fetchAllSchedules: received data:", data);
       console.log("fetchAllSchedules: data length:", data?.length);
-      set({ schedules: data || [] });
+      set({ allSchedules: data || [], schedules: data || [] });
     } catch (e) {
       const msg = extractErrorMessage(e);
       console.error("fetchAllSchedules: error:", msg, e);

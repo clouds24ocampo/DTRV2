@@ -6,6 +6,7 @@ import { appConfig } from "src/config/app.config";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import http from "http";
+import { execSync } from "child_process";
 import express from "express";
 import morgan from "morgan";
 import jwt from "jsonwebtoken";
@@ -814,10 +815,69 @@ freedomIo.on("connection", (socket) => {
   );
 });
 
+function killProcessOnPort(port: number | string) {
+  if (process.platform !== "win32") {
+    try {
+      execSync(`lsof -t -i:${port} | xargs kill -9 2>/dev/null || true`, { stdio: "ignore" });
+    } catch {}
+    return;
+  }
+  try {
+    const output = execSync(`netstat -ano | findstr :${port}`, { encoding: "utf8" });
+    const lines = output.trim().split("\n");
+    const myPid = process.pid;
+    const pidsToKill = new Set<string>();
+
+    for (const rawLine of lines) {
+      const line = rawLine.trim();
+      if (line.includes("LISTENING")) {
+        const parts = line.split(/\s+/);
+        const pid = parts[parts.length - 1];
+        if (pid && pid !== "0" && Number(pid) !== myPid) {
+          pidsToKill.add(pid);
+        }
+      }
+    }
+
+    for (const pid of pidsToKill) {
+      console.log(`[Server] Freeing port ${port} by terminating stale process PID ${pid}...`);
+      try {
+        execSync(`taskkill /F /PID ${pid}`, { stdio: "ignore" });
+      } catch {}
+    }
+  } catch {}
+}
+
 const startServer = async () => {
   try {
     await connectToMongoDB();
     await repairUtcActiveEntries();
+
+    if (process.env.NODE_ENV !== "production") {
+      killProcessOnPort(PORT);
+    }
+
+    let isRetrying = false;
+    server.on("error", (err: any) => {
+      if (err.code === "EADDRINUSE") {
+        if (isRetrying) return;
+        isRetrying = true;
+        console.warn(`[Server] Port ${PORT} is in use. Releasing and retrying in 1s...`);
+        killProcessOnPort(PORT);
+        setTimeout(() => {
+          isRetrying = false;
+          try {
+            server.close();
+          } catch {}
+          server.listen(PORT, () => {
+            console.log(`Server is running on http://localhost:${PORT}`);
+          });
+        }, 1000);
+      } else {
+        console.error("[Server] Unhandled server error:", err);
+      }
+    });
+
     server.listen(PORT, () => {
       console.log(`Server is running on http://localhost:${PORT}`);
     });
@@ -827,4 +887,16 @@ const startServer = async () => {
   }
 };
 
+const gracefulExit = () => {
+  try {
+    io.close();
+    server.close();
+  } catch {}
+};
+
+process.on("SIGINT", gracefulExit);
+process.on("SIGTERM", gracefulExit);
+process.on("SIGUSR2", gracefulExit);
+
 startServer();
+

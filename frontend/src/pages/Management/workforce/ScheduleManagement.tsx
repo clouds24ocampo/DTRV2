@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { CalendarDays } from "lucide-react";
+import { CalendarDays, CalendarRange, Clock3 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useDepartmentStore } from "../../../stores/workforce/department/department.store";
 import EmployeesPanel, {
@@ -8,6 +8,7 @@ import EmployeesPanel, {
 import BreakdownEditModal from "../../../components/workforce/schedule/BreakdownEditModal";
 import ScheduleDetails from "../../../components/workforce/schedule/ScheduleDetails";
 import SessionEditModal from "../../../components/workforce/schedule/SessionEditModal";
+import MasterScheduleTimeline from "../../../components/workforce/schedule/MasterScheduleTimeline";
 import { useScheduleStore } from "../../../stores/global/schedule/schedule.store";
 import { useUserStore } from "../../../stores/workforce/user/user.store";
 import { DepartmentDoc } from "../../../types/workforce/department/department.type";
@@ -24,6 +25,9 @@ export default function ScheduleManagement() {
   const { user, otherUsers, fetchOtherUsers } = useUserStore();
   const {
     schedules,
+    allSchedules,
+    fetchAllSchedules,
+    fetchAllLoading,
     editSingleSession,
     fetchSchedulesFiltered,
     fetchFilteredLoading,
@@ -31,6 +35,7 @@ export default function ScheduleManagement() {
 
   const { departments, fetchAllDepartments } = useDepartmentStore();
 
+  const [activeTab, setActiveTab] = useState<"timeline" | "daily">("timeline");
   const [selectedEmployee, setSelectedEmployee] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState<string>(
     new Date().toISOString().split("T")[0]
@@ -59,7 +64,8 @@ export default function ScheduleManagement() {
   useEffect(() => {
     fetchOtherUsers();
     fetchAllDepartments();
-  }, [fetchOtherUsers, fetchAllDepartments]);
+    fetchAllSchedules().catch((err) => console.error("Error loading all schedules:", err));
+  }, [fetchOtherUsers, fetchAllDepartments, fetchAllSchedules]);
 
   const employeesToShow = useMemo(() => {
     const list = [...(otherUsers ?? [])].filter((u) => !u.archived);
@@ -160,6 +166,12 @@ export default function ScheduleManagement() {
     setShowSessionEdit(false);
   };
 
+  const handleSelectEmployeeAndDateFromTimeline = (userId: string, dateStr: string) => {
+    setSelectedEmployee(userId);
+    setSelectedDate(dateStr);
+    setActiveTab("daily");
+  };
+
   return (
     <motion.div
       className="w-full space-y-4 sm:space-y-6"
@@ -173,40 +185,89 @@ export default function ScheduleManagement() {
           icon={CalendarDays}
           eyebrow="Workforce"
           title="Schedule Management"
-          subtitle="View and manage work schedules"
+          subtitle="View previous, present, and future work schedules across all personnel"
         />
       </motion.div>
 
-      {/* Main content */}
-      <motion.div
-        className="flex flex-col lg:flex-row gap-4 sm:gap-6 min-h-0"
-        variants={itemVariants}
-      >
-        {/* Left Panel */}
-        <motion.div className="w-full lg:w-1/4 lg:min-w-[280px] lg:max-w-[320px]" variants={itemVariants}>
-          <EmployeesPanel
-            employees={employeeLites}
-            selectedEmployee={selectedEmployee ?? ""}
-            onSelect={(id) => setSelectedEmployee(id)}
-            departments={safeDepartments}
-          />
-        </motion.div>
+      {/* View Switcher Tabs */}
+      <motion.div variants={itemVariants} className="flex flex-wrap items-center justify-between gap-3 border-b border-border/60 pb-3">
+        <div className="inline-flex rounded-xl bg-muted/60 p-1 border border-border/40 shadow-inner">
+          <button
+            type="button"
+            onClick={() => setActiveTab("timeline")}
+            className={`inline-flex items-center gap-2 px-4 py-2 text-xs sm:text-sm font-semibold rounded-lg transition-all ${
+              activeTab === "timeline"
+                ? "bg-primary text-primary-foreground shadow-md"
+                : "text-muted-foreground hover:text-foreground hover:bg-background/50"
+            }`}
+          >
+            <CalendarRange className="h-4 w-4" />
+            <span>All Personnel Timeline (Past, Present & Future)</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab("daily")}
+            className={`inline-flex items-center gap-2 px-4 py-2 text-xs sm:text-sm font-semibold rounded-lg transition-all ${
+              activeTab === "daily"
+                ? "bg-primary text-primary-foreground shadow-md"
+                : "text-muted-foreground hover:text-foreground hover:bg-background/50"
+            }`}
+          >
+            <Clock3 className="h-4 w-4" />
+            <span>Single-Day Inspector</span>
+          </button>
+        </div>
 
-        {/* Right Panel */}
-        <motion.div className="flex-1 min-w-0 overflow-hidden" variants={itemVariants}>
-          <ScheduleDetails
-            selectedEmployee={selectedEmployee}
-            selectedEmp={selectedEmp}
-            selectedDate={selectedDate}
-            onDateChange={setSelectedDate}
-            schedules={schedules as any}
-            loading={fetchFilteredLoading}
-            onOpenSessionEdit={handleOpenSessionEdit}
-            onOpenBreakdownEdit={handleOpenBreakdownEdit}
-            canEdit
+        <div className="text-xs text-muted-foreground hidden sm:block">
+          {activeTab === "timeline"
+            ? "Comprehensive chronological schedule roster"
+            : `Inspecting ${selectedEmp ? `${selectedEmp.firstName} ${selectedEmp.lastName}` : "Personnel"} for ${selectedDate}`}
+        </div>
+      </motion.div>
+
+      {/* Main content based on activeTab */}
+      {activeTab === "timeline" ? (
+        <motion.div variants={itemVariants}>
+          <MasterScheduleTimeline
+            schedules={allSchedules.length > 0 ? allSchedules : schedules}
+            employees={employeesToShow}
+            departments={safeDepartments}
+            loading={fetchAllLoading}
+            onSelectEmployeeAndDate={handleSelectEmployeeAndDateFromTimeline}
+            onRefresh={fetchAllSchedules}
           />
         </motion.div>
-      </motion.div>
+      ) : (
+        <motion.div
+          className="flex flex-col lg:flex-row gap-4 sm:gap-6 min-h-0"
+          variants={itemVariants}
+        >
+          {/* Left Panel */}
+          <motion.div className="w-full lg:w-1/4 lg:min-w-[280px] lg:max-w-[320px]" variants={itemVariants}>
+            <EmployeesPanel
+              employees={employeeLites}
+              selectedEmployee={selectedEmployee ?? ""}
+              onSelect={(id) => setSelectedEmployee(id)}
+              departments={safeDepartments}
+            />
+          </motion.div>
+
+          {/* Right Panel */}
+          <motion.div className="flex-1 min-w-0 overflow-hidden" variants={itemVariants}>
+            <ScheduleDetails
+              selectedEmployee={selectedEmployee}
+              selectedEmp={selectedEmp}
+              selectedDate={selectedDate}
+              onDateChange={setSelectedDate}
+              schedules={schedules as any}
+              loading={fetchFilteredLoading}
+              onOpenSessionEdit={handleOpenSessionEdit}
+              onOpenBreakdownEdit={handleOpenBreakdownEdit}
+              canEdit
+            />
+          </motion.div>
+        </motion.div>
+      )}
 
       {/* Modals */}
       {showSessionEdit && sessionToEdit && (

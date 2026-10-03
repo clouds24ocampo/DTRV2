@@ -344,11 +344,43 @@ const EmployeeModal: React.FC<EmployeeModalProps> = ({
                   <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                     <div>
                       <label className="text-sm font-medium text-gray-500 flex items-center">
-                        <Building className="w-4 h-4 mr-1" />
+                        <Building className="w-4 h-4 mr-1 text-blue-600" />
+                        Department
+                      </label>
+                      <p className="text-gray-900 font-semibold mt-1">
+                        {typeof employee.department === "object" && employee.department?.name
+                          ? employee.department.name
+                          : employee.department || "Not Assigned"}
+                      </p>
+                      {typeof employee.department === "object" && employee.department?.type && (
+                        <span className="inline-block mt-1 text-[11px] bg-blue-100 text-blue-800 px-2 py-0.5 rounded font-medium">
+                          {employee.department.type} Sector
+                        </span>
+                      )}
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-gray-500 flex items-center">
+                        <User className="w-4 h-4 mr-1 text-indigo-600" />
+                        Department Head
+                      </label>
+                      <p className="text-gray-900 font-medium mt-1">
+                        {typeof employee.department === "object" && employee.department?.head
+                          ? typeof employee.department.head === "object" &&
+                            (employee.department.head.firstName || employee.department.head.lastName)
+                            ? `${employee.department.head.firstName ?? ""} ${employee.department.head.lastName ?? ""}`.trim()
+                            : String(employee.department.head)
+                          : "Not Assigned"}
+                      </p>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-gray-500 flex items-center">
+                        <Briefcase className="w-4 h-4 mr-1 text-green-600" />
                         Position
                       </label>
                       <p className="text-gray-900 font-medium mt-1">
-                        {employee.position || "—"}
+                        {Array.isArray(employee.position)
+                          ? employee.position.join(", ")
+                          : employee.position || "—"}
                       </p>
                     </div>
                     {isIntern && (

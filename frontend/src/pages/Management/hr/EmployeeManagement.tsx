@@ -39,6 +39,7 @@ interface FilterState {
   status: string;
   category: string;
   position: string;
+  department: string;
   search: string;
 }
 
@@ -57,6 +58,7 @@ export default function EmployeeManagement() {
     status: "all",
     category: "all",
     position: "all",
+    department: "all",
     search: "",
   });
 
@@ -66,6 +68,17 @@ export default function EmployeeManagement() {
       Array.isArray(emp.position) ? emp.position : [emp.position]
     );
     return [...new Set(allPositions.filter(Boolean))].sort();
+  }, [filteredEmployee]);
+
+  // Get unique departments from filteredEmployee
+  const uniqueDepartments = useMemo(() => {
+    const allDepts = filteredEmployee.map((emp: any) => {
+      const d = emp.department;
+      if (typeof d === "object" && d?.name) return d.name;
+      if (typeof d === "string" && d.trim()) return d.trim();
+      return null;
+    }).filter(Boolean);
+    return [...new Set(allDepts)].sort();
   }, [filteredEmployee]);
 
   // Apply filters to employees
@@ -145,6 +158,16 @@ export default function EmployeeManagement() {
         }
         const pl = (employeePosition || "").toLowerCase();
         return pl.includes(categoryValue) || pl.includes(categoryLabel);
+      });
+    }
+
+    // Department filter
+    if (filters.department !== "all") {
+      result = result.filter((employee: any) => {
+        const d = employee.department;
+        const deptName = typeof d === "object" && d?.name ? d.name : (d ? String(d) : "");
+        const deptId = typeof d === "object" && d?._id ? String(d._id) : (d ? String(d) : "");
+        return deptName.toLowerCase() === filters.department.toLowerCase() || deptId === filters.department;
       });
     }
 
@@ -308,6 +331,7 @@ export default function EmployeeManagement() {
       status: "all",
       category: "all",
       position: "all",
+      department: "all",
       search: "",
     });
   };
@@ -364,6 +388,36 @@ export default function EmployeeManagement() {
                   : row.position || "Position not specified"}
               </p>
             </div>
+          </div>
+        );
+      },
+    },
+    {
+      key: "department",
+      header: "Department & Head",
+      render: (_value: any, row: any) => {
+        const dept = row.department;
+        const deptName =
+          typeof dept === "object" && dept?.name ? dept.name : dept ? String(dept) : "Not Assigned";
+        let headName = "Not Assigned";
+        if (typeof dept === "object" && dept?.head) {
+          if (
+            typeof dept.head === "object" &&
+            (dept.head.firstName || dept.head.lastName)
+          ) {
+            headName = `${dept.head.firstName ?? ""} ${dept.head.lastName ?? ""}`.trim();
+          } else {
+            headName = String(dept.head);
+          }
+        }
+        return (
+          <div className="space-y-0.5 max-w-[220px]">
+            <p className="text-xs font-semibold text-slate-900 truncate" title={deptName}>
+              {deptName}
+            </p>
+            <p className="text-[11px] text-slate-500 truncate" title={`Head: ${headName}`}>
+              Head: <span className="font-medium text-slate-700">{headName}</span>
+            </p>
           </div>
         );
       },
@@ -549,9 +603,29 @@ export default function EmployeeManagement() {
           {/* Advanced Filters */}
           {showAdvancedFilters && (
             <motion.div
-              className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 mt-4 bg-slate-50 rounded-xl"
+              className="grid grid-cols-1 sm:grid-cols-3 gap-4 p-4 mt-4 bg-slate-50 rounded-xl"
               variants={itemVariants}
             >
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  Department
+                </label>
+                <select
+                  value={filters.department}
+                  onChange={(e) =>
+                    handleFilterChange("department", e.target.value)
+                  }
+                  className="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm bg-white"
+                >
+                  <option value="all">All Departments</option>
+                  {uniqueDepartments.map((deptName: string) => (
+                    <option key={deptName} value={deptName}>
+                      {deptName}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">
                   Category

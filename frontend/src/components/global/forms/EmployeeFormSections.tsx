@@ -3,10 +3,12 @@ import React from "react";
 import { FormField } from "./FormField";
 import { EmployeeFormFields } from "../../../types/employee/employeeFormTypes";
 import { getFieldConfigs, getWorkInfoConfig } from "../../../utils/employee/employeeFormConfig";
+import { DepartmentSelector } from "./DepartmentSelector";
+import { PositionSectorSelector } from "./PositionSectorSelector";
 
 interface EmployeeFormSectionsProps {
   formData: EmployeeFormFields;
-  onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => void;
+  onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement> | any) => void;
   mode: "add" | "edit";
   showPasswordToggle?: boolean;
   layout?: "grid" | "single";
@@ -31,22 +33,63 @@ export const EmployeeFormSections: React.FC<EmployeeFormSectionsProps> = ({
     ["username", "email", "password"].includes(field.name)
   );
 
-  const workFields = fieldConfigs.filter((field) =>
-    ["position", "location", "salary", "salaryType"].includes(field.name)
+  // Exclude position from generic fields as it now has a dedicated sector-isolated selector
+  const otherWorkFields = fieldConfigs.filter((field) =>
+    ["location", "salary", "salaryType"].includes(field.name)
   );
+
+  const currentPositions = Array.isArray(formData.position)
+    ? formData.position
+    : formData.position
+    ? [formData.position]
+    : [];
+
+  const handlePositionsChange = (newPositions: string[]) => {
+    onChange({
+      target: {
+        name: "position",
+        value: newPositions,
+      },
+    });
+  };
+
+  const handleDepartmentChange = (deptId: string) => {
+    onChange({
+      target: {
+        name: "departmentId",
+        value: deptId,
+      },
+    });
+  };
 
   if (layout === "single") {
     return (
       <div className="space-y-4">
-        {fieldConfigs.map((config) => (
-          <FormField
-            key={config.name}
-            config={config}
-            value={formData[config.name] as string}
-            onChange={onChange}
-            showPasswordToggle={showPasswordToggle && config.name === "password"}
-          />
-        ))}
+        {fieldConfigs
+          .filter((config) => config.name !== "position")
+          .map((config) => (
+            <FormField
+              key={config.name}
+              config={config}
+              value={formData[config.name] as string}
+              onChange={onChange}
+              showPasswordToggle={showPasswordToggle && config.name === "password"}
+            />
+          ))}
+
+        {/* Department Selector with Department Head */}
+        <DepartmentSelector
+          value={formData.departmentId || (formData.department?._id ? String(formData.department._id) : "")}
+          onChange={handleDepartmentChange}
+        />
+
+        {/* Sector-Isolated Position Selector */}
+        <PositionSectorSelector
+          selectedPositions={currentPositions}
+          onChange={handlePositionsChange}
+          required={true}
+        />
+
         <FormField
           config={workInfoConfig}
           value={formData.workInfo}
@@ -101,7 +144,7 @@ export const EmployeeFormSections: React.FC<EmployeeFormSectionsProps> = ({
                 showPasswordToggle={showPasswordToggle && config.name === "password"}
               />
             ))}
-            {workFields.map((config) => (
+            {otherWorkFields.map((config) => (
               <FormField
                 key={config.name}
                 config={config}
@@ -109,12 +152,22 @@ export const EmployeeFormSections: React.FC<EmployeeFormSectionsProps> = ({
                 onChange={onChange}
               />
             ))}
+            {/* Department Selector */}
+            <DepartmentSelector
+              value={formData.departmentId || (formData.department?._id ? String(formData.department._id) : "")}
+              onChange={handleDepartmentChange}
+            />
           </div>
         </div>
       </div>
 
-      {/* FULL WIDTH - Work Information */}
-      <div className="mt-6 pt-6 border-t border-gray-200">
+      {/* FULL WIDTH - Sector-Isolated Position Selector & Work Information */}
+      <div className="mt-6 pt-6 border-t border-gray-200 space-y-4">
+        <PositionSectorSelector
+          selectedPositions={currentPositions}
+          onChange={handlePositionsChange}
+          required={true}
+        />
         <FormField
           config={workInfoConfig}
           value={formData.workInfo}

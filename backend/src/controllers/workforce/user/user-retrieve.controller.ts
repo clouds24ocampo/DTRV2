@@ -10,13 +10,22 @@ export const getAllEmployees = async (
   res: Response
 ): Promise<void> => {
   try {
-    //getUserFromCookie(req);
     // Never send password hashes; salary only to roles that manage pay.
     const held = [req.account?.position].flat().map((p) => String(p ?? "").toLowerCase());
     const canSeePay = held.some((p) => PAY_VIEWERS.includes(p));
-    const employees = await UserModel.find().select(
-      canSeePay ? "-password" : "-password -salary -salaryType"
-    );
+    const employees = await UserModel.find()
+      .populate({
+        path: "department",
+        select: "name type location head",
+        populate: {
+          path: "head",
+          select: "firstName lastName email idNumber",
+        },
+      })
+      .select(
+        canSeePay ? "-password" : "-password -salary -salaryType"
+      )
+      .sort({ createdAt: -1 });
 
     res.status(200).json(employees);
   } catch (error) {
@@ -32,7 +41,16 @@ export const getActiveEmployees = async (
 ): Promise<void> => {
   try {
     getUserFromCookie(req);
-    const employees = await UserModel.find({ archived: { $ne: true } });
+    const employees = await UserModel.find({ archived: { $ne: true } })
+      .populate({
+        path: "department",
+        select: "name type location head",
+        populate: {
+          path: "head",
+          select: "firstName lastName email idNumber",
+        },
+      })
+      .sort({ createdAt: -1 });
     res.status(200).json(employees);
   } catch (error) {
     res.status(500).json({
@@ -47,7 +65,16 @@ export const getArchivedEmployees = async (
 ): Promise<void> => {
   try {
     getUserFromCookie(req);
-    const employees = await UserModel.find({ archived: true });
+    const employees = await UserModel.find({ archived: true })
+      .populate({
+        path: "department",
+        select: "name type location head",
+        populate: {
+          path: "head",
+          select: "firstName lastName email idNumber",
+        },
+      })
+      .sort({ createdAt: -1 });
     res.status(200).json(employees);
   } catch (error) {
     res.status(500).json({
@@ -91,7 +118,16 @@ export const getOwnData = async (
       return;
     }
 
-    const userData = await UserModel.findById(userId).select("-password");
+    const userData = await UserModel.findById(userId)
+      .populate({
+        path: "department",
+        select: "name type location head",
+        populate: {
+          path: "head",
+          select: "firstName lastName email idNumber",
+        },
+      })
+      .select("-password");
     if (!userData) {
       res.status(404).json({ message: "User not found." });
       return;

@@ -7,12 +7,14 @@ import bcrypt from "bcryptjs";
 import uploadImageAndFile from "src/utils/global/uploadImageAndFile";
 import path from "path";
 
+import Department from "../../../models/global/department.model";
 import { CustomRequest } from "src/types/global/express/express.type";
 
 const UPDATABLE_EMPLOYEE_FIELDS = [
   "username", "position", "firstName", "middleName", "lastName", "idNumber",
   "workInfo", "location", "salary", "salaryType", "email", "phone", "about",
   "gender", "dateOfBirth", "profilePicture", "sss", "philhealth", "pagibig",
+  "department",
 ];
 
 export const updateEmployee = async (
@@ -36,15 +38,49 @@ export const updateEmployee = async (
       }
     }
 
+    const previousEmployee = await UserModel.findById(employeeId);
+    if (!previousEmployee) {
+      res.status(404).json({ message: "Employee not found." });
+      return;
+    }
+
+    if (updates.department !== undefined) {
+      const newDeptId = updates.department ? String(updates.department).trim() : null;
+      if (newDeptId && newDeptId !== "null") {
+        const found = await Department.findById(newDeptId);
+        updates.department = found ? found._id : null;
+      } else {
+        updates.department = null;
+      }
+    }
+
     const employee = await UserModel.findByIdAndUpdate(
       employeeId,
       { $set: updates },
       { new: true, runValidators: true }
-    );
+    ).populate({
+      path: "department",
+      select: "name type location head",
+      populate: {
+        path: "head",
+        select: "firstName lastName email idNumber",
+      },
+    });
 
-    if (!employee) {
-      res.status(404).json({ message: "Employee not found." });
-      return;
+    if (updates.department !== undefined) {
+      const oldDeptId = previousEmployee.department?.toString();
+      const newDeptId = employee?.department?._id?.toString() || employee?.department?.toString();
+
+      if (oldDeptId && oldDeptId !== newDeptId) {
+        await Department.findByIdAndUpdate(oldDeptId, {
+          $pull: { members: employeeId },
+        });
+      }
+      if (newDeptId && oldDeptId !== newDeptId) {
+        await Department.findByIdAndUpdate(newDeptId, {
+          $addToSet: { members: employeeId },
+        });
+      }
     }
 
     res.status(200).json({

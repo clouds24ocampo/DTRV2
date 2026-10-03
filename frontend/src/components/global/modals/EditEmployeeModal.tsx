@@ -64,6 +64,11 @@ export const EditEmployeeModal: React.FC<EditEmployeeModalProps> = ({
             : row?.position
               ? [row.position]
               : [],
+        departmentId: row?.department?._id
+          ? String(row.department._id)
+          : row?.department
+          ? String(row.department)
+          : "",
         idNumber: row?.idNumber || "",
         workInfo: row?.workInfo || "",
         location: row?.location || "",
@@ -76,7 +81,7 @@ export const EditEmployeeModal: React.FC<EditEmployeeModalProps> = ({
   const handleChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >
+    > | any
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -105,26 +110,27 @@ export const EditEmployeeModal: React.FC<EditEmployeeModalProps> = ({
 
       const apiPayload: any = {
         ...payload,
+        department: formData.departmentId || null,
       };
 
       if (Array.isArray(payload.position)) {
         apiPayload.position = payload.position;
-      } else {
+      } else if (payload.position) {
         apiPayload.position = [payload.position];
+      } else {
+        apiPayload.position = ["Employee"];
       }
 
       const success = await updateEmployeeDataToApi(apiPayload);
 
       if (success) {
         setFormData(initialFormData);
-        toast.success("Edited successfully");
+        toast.success("Employee updated successfully");
         onClose();
         refetchAll();
-      } else {
-        toast.error("Failed to submit request");
       }
     } catch (error: any) {
-      toast.error(error?.message || "An error occurred");
+      toast.error(error?.message || "Failed to update employee");
     } finally {
       setLoading(false);
     }

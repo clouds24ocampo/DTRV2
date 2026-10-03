@@ -13,7 +13,7 @@ function normalizeUserIdForQuery(userId: string): string | mongoose.Types.Object
 
 export const getAllSchedulesService = async (): Promise<ISchedule[]> => {
   try {
-    return await Schedule.find({});
+    return await Schedule.find({}).sort({ date: -1 });
   } catch {
     throw new ServiceError("Failed to fetch schedules", 500);
   }

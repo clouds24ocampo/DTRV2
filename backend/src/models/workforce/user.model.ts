@@ -31,6 +31,7 @@ export interface IUser extends Document<string> {
   password: string;
   position: Role[];
   archived: boolean;
+  department?: mongoose.Schema.Types.ObjectId | string | any;
   firstName: string;
   middleName?: string;
   lastName: string;
@@ -60,30 +61,12 @@ const UserSchema: Schema = new Schema(
     password: { type: String, required: true },
     position: {
       type: [String],
-      enum: [
-        "Employee",
-        "Team Leader - Field",
-        "Team Leader - Operation",
-        "Workforce",
-        "HR",
-        "Operation Manager",
-        "Intern",
-        "Trainee",
-        "Provisionary",
-        "Instructor",
-        "Student",
-        "Marketer",
-        "Employee - Field",
-        "Employee - Operation",
-        "Frontline / Agent Roles",
-        "Specialized Agent Roles",
-        "Supervisory & Management Roles",
-        "Support & Back-Office Roles",
-        "Software Developer",
-        "Lead Developer",
-        "Software Engineer",
-      ],
       default: ["Employee"],
+    },
+    department: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Department",
+      default: null,
     },
     archived: { type: Boolean, default: false },
     firstName: { type: String, required: true },

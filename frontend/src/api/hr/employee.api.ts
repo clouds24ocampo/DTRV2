@@ -11,6 +11,8 @@ export interface EmployeeRegistrationInput {
   middleName: string;
   idNumber?: string;
   position: string | string[];
+  departmentId?: string;
+  department?: any;
   workInfo: string;
   location: string;
   salaryType: string;
@@ -26,6 +28,8 @@ export interface EditEmployeeRegistrationInput {
   middleName: string;
   idNumber: string;
   position: string | string[];
+  departmentId?: string;
+  department?: any;
   workInfo: string;
   location: string;
   salaryType: string;
@@ -51,28 +55,38 @@ export const fetchEmployees = async () => {
 
 export const sendEmployeeDataToApi = async (
   payload: EmployeeRegistrationInput
-): Promise<boolean> => {
+): Promise<any> => {
   try {
     const response = await axiosInstance.post(`/api/users/register`, payload);
     return response.data;
-  } catch (error) {
-    console.error("Error in API call:", error);
-    return false;
+  } catch (error: any) {
+    const message =
+      error?.response?.data?.message ||
+      error?.response?.data?.error ||
+      error?.message ||
+      "Failed to register employee";
+    console.error("Error in sendEmployeeDataToApi:", message, error);
+    throw new Error(message);
   }
 };
 
 export const updateEmployeeDataToApi = async (
   payload: EditEmployeeRegistrationInput
-): Promise<boolean> => {
+): Promise<any> => {
   try {
     const response = await axiosInstance.put(
       `/api/users/update-employee/${payload._id}`,
       payload
     );
     return response.data;
-  } catch (error) {
-    console.error("Error in API call:", error);
-    return false;
+  } catch (error: any) {
+    const message =
+      error?.response?.data?.message ||
+      error?.response?.data?.error ||
+      error?.message ||
+      "Failed to update employee";
+    console.error("Error in updateEmployeeDataToApi:", message, error);
+    throw new Error(message);
   }
 };
 

@@ -8,21 +8,41 @@ import type {
 } from "../../../types/global/department/department.type";
 
 function toDepartmentDoc(raw: any): DepartmentDoc {
+  const headId = raw.head
+    ? typeof raw.head === "object" && raw.head._id
+      ? String(raw.head._id)
+      : String(raw.head)
+    : null;
+
+  const headUser =
+    raw.head && typeof raw.head === "object" && raw.head._id
+      ? {
+          _id: String(raw.head._id),
+          firstName: raw.head.firstName ?? "",
+          lastName: raw.head.lastName ?? "",
+          email: raw.head.email ?? "",
+          idNumber: raw.head.idNumber ?? "",
+        }
+      : undefined;
+
   return {
     _id: String(raw._id),
     name: String(raw.name),
     type: String(raw.type),
     description: String(raw.description ?? ""),
-    head: raw.head ? String(raw.head) : null,
+    head: headId,
+    headUser,
     members: Array.isArray(raw.members)
-      ? raw.members.map((m: any) => String(m))
+      ? raw.members.map((m: any) =>
+          typeof m === "object" && m?._id ? String(m._id) : String(m)
+        )
       : [],
     location: String(raw.location ?? ""),
     status: Boolean(raw.status),
     createdAt: raw.createdAt,
     updatedAt: raw.updatedAt,
     createdBy: raw.createdBy ? String(raw.createdBy) : undefined,
-  };
+  } as DepartmentDoc;
 }
 
 const toObjectId = (id: string) =>
@@ -69,14 +89,18 @@ export async function createDepartmentService(
 export async function getDepartmentByIdService(
   departmentId: string
 ): Promise<DepartmentDoc> {
-  const dep = await Department.findById(departmentId).lean();
+  const dep = await Department.findById(departmentId)
+    .populate("head", "firstName lastName email idNumber")
+    .lean();
   if (!dep) throw new ServiceError("Department not found", 404);
   return toDepartmentDoc(dep);
 }
 
 export async function getAllDepartmentsService(): Promise<DepartmentDoc[]> {
-  const deps = await Department.find().lean();
-  if (!deps.length) throw new ServiceError("No departments found", 404);
+  const deps = await Department.find()
+    .populate("head", "firstName lastName email idNumber")
+    .sort({ name: 1 })
+    .lean();
   return deps.map(toDepartmentDoc);
 }
 

@@ -7,6 +7,8 @@ export type EmployeeFormFields = {
   firstName: string;
   middleName: string;
   position: string | string[];
+  departmentId?: string;
+  department?: any;
   idNumber: string;
   workInfo: string;
   location: string;
