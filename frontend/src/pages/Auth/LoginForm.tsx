@@ -292,9 +292,10 @@ export default function LoginForm() {
       if (redirectAfterLogin && typeof redirectAfterLogin === "string" && redirectAfterLogin.startsWith("/") && redirectAfterLogin !== "/login") {
         navigate(redirectAfterLogin, { replace: true });
       } else {
-        const positions: string[] = Array.isArray(result.user?.position)
-          ? result.user.position.map((p) => String(p).toLowerCase().trim())
-          : [String(result.user?.position || "").toLowerCase().trim()];
+        const userPosition = result.user?.position;
+        const positions: string[] = Array.isArray(userPosition)
+          ? userPosition.map((p) => String(p).toLowerCase().trim())
+          : [String(userPosition || "").toLowerCase().trim()];
         const hasRole = (keyword: string) => positions.some((p) => p.includes(keyword));
 
         if (hasRole("hr") || hasRole("admin") || hasRole("operation manager") || hasRole("operations manager")) {
