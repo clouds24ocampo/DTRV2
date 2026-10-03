@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Eye, EyeOff, ShieldCheck, ArrowLeft, AlertCircle, CheckCircle2, Lock, Mail, User } from "lucide-react";
 import { motion } from "framer-motion";
 import { useNavigate, Link } from "react-router-dom";
+import { isAxiosError } from "axios";
 import { registerSuperAdminApi } from "../../api/auth/auth.api";
 import useAuthStore from "../../stores/auth/auth.store";
 import toast from "react-hot-toast";
@@ -66,11 +67,13 @@ export default function RegisterAdmin() {
       setTimeout(() => {
         navigate("/hr-dashboard");
       }, 1200);
-    } catch (err: any) {
-      const msg =
-        err.response?.data?.message ||
-        err.message ||
-        "Failed to register Super Admin account.";
+    } catch (err: unknown) {
+      let msg = "Failed to register Super Admin account.";
+      if (isAxiosError<{ message?: string }>(err)) {
+        msg = err.response?.data?.message || err.message || msg;
+      } else if (err instanceof Error) {
+        msg = err.message;
+      }
       setError(msg);
     } finally {
       setLoading(false);
